@@ -43,15 +43,35 @@ shader = compileProgram(
 )
 
 vertex_data = np.array([
-  0.5, 0.5, 0.0, 1.0, 0.0, 0.0,     # top left
-  0.5, -0.5, 0.0, 0.0, 1.0, 0.0,    # top right
-  -0.5, 0.5, 0.0, 0.0, 0.0, 1.0,     # bottom left
-  -0.5, -0.5, 0.0, 1.0, 0.0, 1.0    # bottom right
+  -0.5, -0.5,  0.5,    1, 0, 0,
+  0.5, -0.5,  0.5,    1, 1, 0,
+  0.5,  0.5,  0.5,    0, 0, 1,
+  -0.5,  0.5,  0.5,    1, 1, 0,
+  -0.5, -0.5, -0.5,    1, 0, 0,
+  0.5, -0.5, -0.5,    0, 1, 0,
+  0.5,  0.5, -0.5,    0, 0, 1,
+  -0.5,  0.5, -0.5,    1, 1, 0
 ], dtype=np.float32)
 
 index_data = np.array([
-  0, 1, 2,  # first triangle
-  1, 2, 3,  # second triangle
+	# front
+	0, 1, 2,
+	2, 3, 0,
+	# right
+	1, 5, 6,
+	6, 2, 1,
+	# back
+	7, 6, 5,
+	5, 4, 7,
+	# left
+	4, 0, 3,
+	3, 7, 4,
+	# bottom
+	4, 5, 1,
+	1, 0, 4,
+	# top
+	3, 2, 6,
+	6, 7, 3
 ], dtype=np.uint32)
 
 # VBO
@@ -108,14 +128,25 @@ def create_matrix(counter):
 
 glViewport(0, 0, 800, 600)
 
+glEnable(GL_DEPTH_TEST)
 
 
+def process_input():
+  for event in pygame.event.get():
+    if event.type == pygame.QUIT:
+      exit()
+    elif event.type == pygame.KEYDOWN:
+      if event.key == pygame.K_w:
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+      elif event.key == pygame.K_f:
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
 running = True
 counter = 0
+
 while running:
 
-  glClear(GL_COLOR_BUFFER_BIT)
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
   glClearColor(0.5, 1.0, 0.5, 1.0)
   
   glEnableVertexAttribArray(0)
@@ -132,16 +163,11 @@ while running:
     glm.value_ptr(theMatrix)
   )
 
-  # 
-  counter += 1
-  clock.tick(0)
-
-
-  # glDrawArrays(GL_TRIANGLES, 0, 3) # vertex data array len (row), triangles
-  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None) # vertex data array len (row), cubes
+  # glDrawArrays(GL_TRIANGLES, 0, 6)
+  glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, None)
 
   pygame.display.flip()
 
-  for event in pygame.event.get():
-    if event.type == pygame.QUIT:
-      running = False
+  process_input()
+  counter += 1
+  clock.tick(15)
