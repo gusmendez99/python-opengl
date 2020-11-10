@@ -43,10 +43,16 @@ shader = compileProgram(
 )
 
 vertex_data = np.array([
-  -0.5, -0.5, 0.0, 1.0, 0.0, 0.0,
-  0.5, -0.5, 0.0, 0.0, 1.0, 0.0,
-  0.0,  0.5, 0.0, 0.0, 0.0, 1.0
+  0.5, 0.5, 0.0, 1.0, 0.0, 0.0,     # top left
+  0.5, -0.5, 0.0, 0.0, 1.0, 0.0,    # top right
+  -0.5, 0.5, 0.0, 0.0, 0.0, 1.0,     # bottom left
+  -0.5, -0.5, 0.0, 1.0, 0.0, 1.0    # bottom right
 ], dtype=np.float32)
+
+index_data = np.array([
+  0, 1, 2,  # first triangle
+  1, 2, 3,  # second triangle
+], dtype=np.uint32)
 
 # VBO
 vertex_buffer_object = glGenBuffers(1)
@@ -57,6 +63,13 @@ glBufferData(GL_ARRAY_BUFFER, vertex_data.nbytes, vertex_data, GL_STATIC_DRAW)
 # VAO
 vertex_array_object = glGenVertexArrays(1)
 glBindVertexArray(vertex_array_object)
+
+
+# For cubes
+element_buffer_object = glGenBuffers(1)
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer_object)
+glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_data.nbytes, index_data, GL_STATIC_DRAW)
+
 
 glVertexAttribPointer(
   0, # location
@@ -121,10 +134,11 @@ while running:
 
   # 
   counter += 1
-  clock.tick(15)
+  clock.tick(0)
 
 
-  glDrawArrays(GL_TRIANGLES, 0, 3) # vertex data array len (row)
+  # glDrawArrays(GL_TRIANGLES, 0, 3) # vertex data array len (row), triangles
+  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None) # vertex data array len (row), cubes
 
   pygame.display.flip()
 
