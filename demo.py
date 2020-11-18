@@ -14,14 +14,17 @@ vertex_shader = """
 #version 460
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
+layout (location = 2) in vec2 texcoords;
 
 uniform mat4 theMatrix;
 uniform vec3 light;
 
 out float intensity;
+out vec2 vertexTexcoords;
 
 void main()
 {
+  vertexTexcoords = texcoords;
   intensity = dot(normal, normalize(light));
   gl_Position = theMatrix * vec4(position.x, position.y, position.z, 1.0);
 }
@@ -32,10 +35,16 @@ fragment_shader = """
 layout(location = 0) out vec4 fragColor;
 
 in float intensity;
+in vec2 vertexTexcoords;
+
+uniform sampler2D tex;
+uniform vec4 diffuse;
+uniform vec4 ambient;
 
 void main()
 {
-   fragColor = vec4(1.0f, 0.0f, 1.0f, 1.0f) * intensity;
+
+   fragColor = ambient + diffuse * texture(tex, vertexTexcoords) * intensity;
 }
 """
 
@@ -44,8 +53,33 @@ shader = compileProgram(
     compileShader(fragment_shader, GL_FRAGMENT_SHADER)
 )
 
-
+# Load model
 scene = pyassimp.load('./models/spider.obj')
+# Load texture
+texture_surface = pygame.image.load('./models/SpiderTex.jpg')
+texture_data = pygame.image.tostring(texture_surface, 'RGB', 1)
+
+
+width = texture_surface.get_width()
+height = texture_surface.get_height()
+
+texture = glGenTextures(1)
+glBindTexture(GL_TEXTURE_2D, texture)
+glTexImage2D(
+  GL_TEXTURE_2D,
+  0, # Level details
+  GL_RGB,
+  width,
+  height,
+  0, # border always zero
+  GL_RGB,
+  GL_UNSIGNED_BYTE,
+  texture_data
+
+)
+
+glGenerateMipmap(GL_TEXTURE_2D)
+
 
 
 
@@ -57,6 +91,8 @@ def glize(node):
       numpy.array(mesh.normals, dtype=numpy.float32),
       numpy.array(mesh.texturecoords[0], dtype=numpy.float32),
     ])
+
+    # print(mesh.materialindex)
 
     index_data = numpy.hstack(
       numpy.array(mesh.faces, dtype=numpy.int32),
@@ -77,12 +113,20 @@ def glize(node):
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer_object)
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_data.nbytes, index_data, GL_STATIC_DRAW)
 
-
     glUniform3f(
       glGetUniformLocation(shader, "light"),
       -100, 300, 0
     )
 
+    glUniform4f(
+      glGetUniformLocation(shader, "diffuse"),
+      0.7, 0.2, 0, 1
+    )
+
+    glUniform4f(
+      glGetUniformLocation(shader, "ambient"),
+      0.2, 0.2, 0.2, 1
+    )
 
     glDrawElements(GL_TRIANGLES, len(index_data), GL_UNSIGNED_INT, None)
 
