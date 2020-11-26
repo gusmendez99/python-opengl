@@ -7,7 +7,7 @@ from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram, compileShader
 
 pygame.init()
-screen = pygame.display.set_mode((800, 600), pygame.OPENGL | pygame.DOUBLEBUF)
+screen = pygame.display.set_mode((800, 600), pygame.OPENGL | pygame.OPENGLBLIT | pygame.DOUBLEBUF)
 clock = pygame.time.Clock()
 
 vertex_shader = """
@@ -54,9 +54,9 @@ shader = compileProgram(
 )
 
 # Load model
-scene = pyassimp.load('./models/spider.obj')
+scene = pyassimp.load('./models/ironman.obj')
 # Load texture
-texture_surface = pygame.image.load('./models/SpiderTex.jpg')
+texture_surface = pygame.image.load('./models/ironman.tga')
 texture_data = pygame.image.tostring(texture_surface, 'RGB', 1)
 
 
@@ -115,12 +115,12 @@ def glize(node):
 
     glUniform3f(
       glGetUniformLocation(shader, "light"),
-      -100, 300, 0
+      -2, 10, 5
     )
 
     glUniform4f(
       glGetUniformLocation(shader, "diffuse"),
-      0.7, 0.2, 0, 1
+      5, 5, 5, 1
     )
 
     glUniform4f(
@@ -138,14 +138,13 @@ def glize(node):
 
 i = glm.mat4()
 
-def createTheMatrix(x_movement, y_movement):
+def createTheMatrix(x, y, z, rotation_x):
   translate = glm.translate(i, glm.vec3(0, 0, 0))
-  rotate_x = glm.rotate(i, glm.radians(x_movement), glm.vec3(0, 1, 0))
-  rotate_y = glm.rotate(i, glm.radians(y_movement), glm.vec3(0, 0, 1))
+  rotate_x = glm.rotate(i, glm.radians(rotation_x), glm.vec3(0, 1, 0))
   scale = glm.scale(i, glm.vec3(1, 1, 1))
 
-  model = translate * rotate_x * rotate_y * scale
-  view = glm.lookAt(glm.vec3(0, 0, 200), glm.vec3(0, 0, 0), glm.vec3(0, 1, 0))
+  model = translate * rotate_x * scale
+  view = glm.lookAt(glm.vec3(0, 1.8, z), glm.vec3(x, y, 0), glm.vec3(0, 1, 0))
   projection = glm.perspective(glm.radians(45), 800/600, 0.1, 1000)
 
   return projection * view * model
@@ -154,16 +153,25 @@ glViewport(0, 0, 800, 600)
 
 glEnable(GL_DEPTH_TEST)
 
+
+
+
+CAMERA_VELOCITY = 0.5
 running = True
-x_movement = 0
-y_movement = 0
+position_x = 0
+position_y = 1.8
+position_z = 5
+rotation_x = 0
+
 while running:
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
   glClearColor(0.5, 1.0, 0.5, 1.0)
+  # Background
+  
 
   glUseProgram(shader)
 
-  theMatrix = createTheMatrix(x_movement, y_movement)
+  theMatrix = createTheMatrix(position_x, position_y, position_z, rotation_x)
 
   theMatrixLocation = glGetUniformLocation(shader, 'theMatrix')
 
@@ -179,6 +187,7 @@ while running:
 
   glize(scene.rootnode)
 
+  # pygame.display.flip()
   pygame.display.flip()
 
   for event in pygame.event.get():
@@ -186,11 +195,31 @@ while running:
       running = False
     elif event.type == pygame.KEYDOWN:
       print('keydown')
-      if event.key == pygame.K_w:
+      if event.key == pygame.K_q:
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-      if event.key == pygame.K_f:
+      if event.key == pygame.K_e:
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+      if event.key == pygame.K_a:
+        position_x -= CAMERA_VELOCITY
+      if event.key == pygame.K_d:
+        position_x += CAMERA_VELOCITY
+      if event.key == pygame.K_w:
+        position_y += CAMERA_VELOCITY
+      if event.key == pygame.K_s:
+        position_y -= CAMERA_VELOCITY
+      if event.key == pygame.K_DOWN:
+        offset_z = position_z + CAMERA_VELOCITY
+        if offset_z > 5: 
+          position_z += CAMERA_VELOCITY
+      if event.key == pygame.K_UP:
+        offset_z = position_z - CAMERA_VELOCITY
+        if offset_z > 5: 
+          position_z -= CAMERA_VELOCITY
+
+  rotation_x = pygame.mouse.get_pos()[0]
+  rotation_x -= 400
+  rotation_x = (rotation_x/800) * 360
 
 
-  x_movement, y_movement = pygame.mouse.get_pos()
+
   clock.tick(0)
