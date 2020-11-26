@@ -138,12 +138,13 @@ def glize(node):
 
 i = glm.mat4()
 
-def createTheMatrix(counter):
+def createTheMatrix(x_movement, y_movement):
   translate = glm.translate(i, glm.vec3(0, 0, 0))
-  rotate = glm.rotate(i, glm.radians(counter), glm.vec3(0, 1, 0))
+  rotate_x = glm.rotate(i, glm.radians(x_movement), glm.vec3(0, 1, 0))
+  rotate_y = glm.rotate(i, glm.radians(y_movement), glm.vec3(0, 0, 1))
   scale = glm.scale(i, glm.vec3(1, 1, 1))
 
-  model = translate * rotate * scale
+  model = translate * rotate_x * rotate_y * scale
   view = glm.lookAt(glm.vec3(0, 0, 200), glm.vec3(0, 0, 0), glm.vec3(0, 1, 0))
   projection = glm.perspective(glm.radians(45), 800/600, 0.1, 1000)
 
@@ -154,14 +155,15 @@ glViewport(0, 0, 800, 600)
 glEnable(GL_DEPTH_TEST)
 
 running = True
-counter = 0
+x_movement = 0
+y_movement = 0
 while running:
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
   glClearColor(0.5, 1.0, 0.5, 1.0)
 
   glUseProgram(shader)
 
-  theMatrix = createTheMatrix(counter)
+  theMatrix = createTheMatrix(x_movement, y_movement)
 
   theMatrixLocation = glGetUniformLocation(shader, 'theMatrix')
 
@@ -190,7 +192,5 @@ while running:
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
 
-
-
-  counter += 1
+  x_movement, y_movement = pygame.mouse.get_pos()
   clock.tick(0)
