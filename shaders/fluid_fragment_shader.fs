@@ -5,7 +5,9 @@ in float intensity;
 in vec3 glPosition;
 in float glTime;
 in vec3 glNormal;
+in vec2 vertexTexcoords;
 
+uniform sampler2D tex;
 uniform vec4 diffuse;
 uniform vec4 ambient;
 
@@ -38,6 +40,7 @@ void main()
         p=newp;
     }
     vec3 col=vec3(color_intensity*sin(3.0*p.x)+color_intensity,color_intensity*sin(3.0*p.y+glTime*0.75)+color_intensity,sin(p.x+p.y));
-    gl_FragColor=vec4(col, 1.0);
+    vec4 finalColor=vec4(col, 1.0);
+    gl_FragColor = ambient + diffuse * texture(tex, vertexTexcoords) * finalColor;
 
 }

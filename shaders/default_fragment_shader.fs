@@ -10,5 +10,5 @@ uniform vec4 ambient;
 
 void main()
 {
-    fragColor = ambient + diffuse * texture(tex, vertexTexcoords) * intensity;
+    gl_FragColor = ambient + diffuse * texture(tex, vertexTexcoords) * intensity;
 }

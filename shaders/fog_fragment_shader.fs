@@ -5,12 +5,13 @@ in float intensity;
 in vec3 glPosition;
 in float glTime;
 in vec3 glNormal;
+in vec2 vertexTexcoords;
 
+uniform sampler2D tex;
 uniform vec4 diffuse;
 uniform vec4 ambient;
 
 // helpers
-
 float random(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
@@ -63,5 +64,6 @@ void main()
 {
     vec2 p = vec2( glPosition.x, glPosition.y ) / 4.0;
 	vec3 color = bg(p)*(2.-abs(p.y*2.));
-	gl_FragColor = vec4( vec3( color), 1.0 );
+	vec4 finalColor = vec4( vec3( color), 1.0 );
+    gl_FragColor = ambient + diffuse * texture(tex, vertexTexcoords) * finalColor;
 }

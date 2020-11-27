@@ -7,11 +7,15 @@ from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram, compileShader
 from shader_loader import compile_shader
 
+# Shader constants
+ACTIVE_SHADERS = ["default", "glow", "fog", "fluid"]
+
 # For model viewer
 CAMERA_VELOCITY = 0.5
 MAX_ZOOM = 10
 MIN_ZOOM = 2
 
+active_shader = ACTIVE_SHADERS[0]
 running = True
 exec_time = 0
 position_x = 0
@@ -56,7 +60,8 @@ glEnable(GL_DEPTH_TEST)
 
 # compiles shader
 shader = compile_shader(
-    "shaders/smoke_vertex_shader.vs", "shaders/smoke_fragment_shader.fs"
+    "shaders/default_vertex_shader.vs", 
+    f"shaders/{active_shader}_fragment_shader.fs"
 )
 
 
@@ -94,7 +99,7 @@ def glize(node):
 
         glUniform3f(glGetUniformLocation(shader, "light"), -2, 10, 5)
 
-        glUniform4f(glGetUniformLocation(shader, "diffuse"), 5, 5, 5, 1)
+        glUniform4f(glGetUniformLocation(shader, "diffuse"), 4, 4, 4, 1)
 
         glUniform4f(glGetUniformLocation(shader, "ambient"), 0.2, 0.2, 0.2, 1)
 
@@ -151,6 +156,7 @@ while running:
             running = False
         elif event.type == pygame.KEYDOWN:
             print("keydown")
+            is_shader_updated = False
             if event.key == pygame.K_q:
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
             if event.key == pygame.K_e:
@@ -171,6 +177,28 @@ while running:
                 offset_z = position_z - CAMERA_VELOCITY
                 if offset_z > MIN_ZOOM and offset_z < MAX_ZOOM:
                     position_z -= CAMERA_VELOCITY
+            if event.key == pygame.K_0:
+                active_shader = ACTIVE_SHADERS[0]
+                is_shader_updated = True
+            if event.key == pygame.K_1:
+                active_shader = ACTIVE_SHADERS[1]
+                is_shader_updated = True
+            if event.key == pygame.K_2:
+                active_shader = ACTIVE_SHADERS[2]
+                is_shader_updated = True
+            if event.key == pygame.K_3:
+                active_shader = ACTIVE_SHADERS[3]
+                is_shader_updated = True
+            
+
+            if is_shader_updated:
+                shader = compile_shader(
+                    "shaders/default_vertex_shader.vs", 
+                    f"shaders/{active_shader}_fragment_shader.fs"
+                )
+
+            
+
 
     rotation_x = pygame.mouse.get_pos()[0]
     rotation_x -= 400
