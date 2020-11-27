@@ -20,3 +20,16 @@ Simple OpenGL examples with pygame and pyopengl
    3. Fog shader.
    4. Fluid shader.
 6. Press ESC to exit.
+
+## Shaders
+### Default
+![default](https://github.com/gusmendez99/python-opengl/raw/main/images/default.gif?raw=true)
+
+### Glow
+![glow](https://github.com/gusmendez99/python-opengl/raw/main/images/glow.gif?raw=true)
+
+### Fog
+![fog](https://github.com/gusmendez99/python-opengl/raw/main/images/fog.gif?raw=true)
+
+### Fluid
+![fluid](https://github.com/gusmendez99/python-opengl/raw/main/images/fluid.gif?raw=true)
