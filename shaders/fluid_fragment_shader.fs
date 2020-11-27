@@ -11,9 +11,9 @@ uniform sampler2D tex;
 uniform vec4 diffuse;
 uniform vec4 ambient;
 
-const int   complexity      = 20;    // More points of color.
+const int   complexity      = 60;    // More points of color.
 const float mouse_factor    = 25.0;  // Makes it more/less jumpy.
-const float mouse_offset    = 5.0;   // Drives complexity in the amount of curls/cuves.  Zero is a single whirlpool.
+const float mouse_offset    = 8.0;   // Drives complexity in the amount of curls/cuves.  Zero is a single whirlpool.
 const float fluid_speed     = 45.0;  // Drives speed, higher number will make it slower.
 const float color_intensity = 0.7;
 

@@ -26,9 +26,7 @@ rotation_x = 0
 
 pygame.init()
 pygame.display.set_caption("Iron Man - Model Viewer")
-screen = pygame.display.set_mode(
-    (800, 600), pygame.OPENGL | pygame.OPENGLBLIT | pygame.DOUBLEBUF
-)
+screen = pygame.display.set_mode((800, 600), pygame.OPENGL | pygame.DOUBLEBUF)
 clock = pygame.time.Clock()
 
 # Load model
@@ -60,8 +58,7 @@ glEnable(GL_DEPTH_TEST)
 
 # compiles shader
 shader = compile_shader(
-    "shaders/default_vertex_shader.vs", 
-    f"shaders/{active_shader}_fragment_shader.fs"
+    "shaders/default_vertex_shader.vs", f"shaders/{active_shader}_fragment_shader.fs"
 )
 
 
@@ -99,7 +96,7 @@ def glize(node):
 
         glUniform3f(glGetUniformLocation(shader, "light"), -2, 10, 5)
 
-        glUniform4f(glGetUniformLocation(shader, "diffuse"), 4, 4, 4, 1)
+        glUniform4f(glGetUniformLocation(shader, "diffuse"), 2, 2, 2, 1)
 
         glUniform4f(glGetUniformLocation(shader, "ambient"), 0.2, 0.2, 0.2, 1)
 
@@ -120,18 +117,20 @@ def createTheMatrix(x, y, z, rotation_x):
     model = translate * rotate_x * scale
     view = glm.lookAt(glm.vec3(x, y, z), glm.vec3(0, 1.8, 0), glm.vec3(0, 1, 0))
     projection = glm.perspective(glm.radians(45), 800 / 600, 0.1, 1000)
-    world = projection * view * model 
+    world = projection * view * model
 
     return model, world
 
 
 while running:
+    glClearColor(0.1, 0.1, 0.1, 1)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    glClearColor(0.5, 1.0, 0.5, 1.0)
     # Background
 
     glUseProgram(shader)
-    modelMatrix, worldMatrix = createTheMatrix(position_x, position_y, position_z, rotation_x)
+    modelMatrix, worldMatrix = createTheMatrix(
+        position_x, position_y, position_z, rotation_x
+    )
     theMatrixLocation = glGetUniformLocation(shader, "theMatrix")
     glUniformMatrix4fv(
         theMatrixLocation, 1, GL_FALSE, glm.value_ptr(worldMatrix)  # location  # count
@@ -189,16 +188,12 @@ while running:
             if event.key == pygame.K_3:
                 active_shader = ACTIVE_SHADERS[3]
                 is_shader_updated = True
-            
 
             if is_shader_updated:
                 shader = compile_shader(
-                    "shaders/default_vertex_shader.vs", 
-                    f"shaders/{active_shader}_fragment_shader.fs"
+                    "shaders/default_vertex_shader.vs",
+                    f"shaders/{active_shader}_fragment_shader.fs",
                 )
-
-            
-
 
     rotation_x = pygame.mouse.get_pos()[0]
     rotation_x -= 400
