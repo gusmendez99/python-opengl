@@ -5,62 +5,33 @@ import pyassimp
 
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram, compileShader
+from shader_loader import compile_shader
+
+# For model viewer
+CAMERA_VELOCITY = 0.5
+MAX_ZOOM = 10
+MIN_ZOOM = 2
+
+running = True
+exec_time = 0
+position_x = 0
+position_y = 1.8
+position_z = 5
+rotation_x = 0
+
 
 pygame.init()
+pygame.display.set_caption("Iron Man - Model Viewer")
 screen = pygame.display.set_mode(
     (800, 600), pygame.OPENGL | pygame.OPENGLBLIT | pygame.DOUBLEBUF
 )
 clock = pygame.time.Clock()
-
-vertex_shader = """
-#version 460
-layout (location = 0) in vec3 position;
-layout (location = 1) in vec3 normal;
-layout (location = 2) in vec2 texcoords;
-
-uniform mat4 theMatrix;
-uniform vec3 light;
-
-out float intensity;
-out vec2 vertexTexcoords;
-
-void main()
-{
-  vertexTexcoords = texcoords;
-  intensity = dot(normal, normalize(light));
-  gl_Position = theMatrix * vec4(position.x, position.y, position.z, 1.0);
-}
-"""
-
-fragment_shader = """
-#version 460
-layout(location = 0) out vec4 fragColor;
-
-in float intensity;
-in vec2 vertexTexcoords;
-
-uniform sampler2D tex;
-uniform vec4 diffuse;
-uniform vec4 ambient;
-
-void main()
-{
-
-   fragColor = ambient + diffuse * texture(tex, vertexTexcoords) * intensity;
-}
-"""
-
-shader = compileProgram(
-    compileShader(vertex_shader, GL_VERTEX_SHADER),
-    compileShader(fragment_shader, GL_FRAGMENT_SHADER),
-)
 
 # Load model
 scene = pyassimp.load("./models/ironman.obj")
 # Load texture
 texture_surface = pygame.image.load("./models/ironman.tga")
 texture_data = pygame.image.tostring(texture_surface, "RGB", 1)
-
 
 width = texture_surface.get_width()
 height = texture_surface.get_height()
@@ -80,6 +51,13 @@ glTexImage2D(
 )
 
 glGenerateMipmap(GL_TEXTURE_2D)
+glViewport(0, 0, 800, 600)
+glEnable(GL_DEPTH_TEST)
+
+# compiles shader
+shader = compile_shader(
+    "shaders/smoke_vertex_shader.vs", "shaders/smoke_fragment_shader.fs"
+)
 
 
 def glize(node):
@@ -137,23 +115,10 @@ def createTheMatrix(x, y, z, rotation_x):
     model = translate * rotate_x * scale
     view = glm.lookAt(glm.vec3(x, y, z), glm.vec3(0, 1.8, 0), glm.vec3(0, 1, 0))
     projection = glm.perspective(glm.radians(45), 800 / 600, 0.1, 1000)
+    world = projection * view * model 
 
-    return projection * view * model
+    return model, world
 
-
-glViewport(0, 0, 800, 600)
-
-glEnable(GL_DEPTH_TEST)
-
-
-CAMERA_VELOCITY = 0.5
-MIN_ZOOM = 10
-MAX_ZOOM = 2
-running = True
-position_x = 0
-position_y = 1.8
-position_z = 5
-rotation_x = 0
 
 while running:
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -161,21 +126,24 @@ while running:
     # Background
 
     glUseProgram(shader)
-
-    theMatrix = createTheMatrix(position_x, position_y, position_z, rotation_x)
-
+    modelMatrix, worldMatrix = createTheMatrix(position_x, position_y, position_z, rotation_x)
     theMatrixLocation = glGetUniformLocation(shader, "theMatrix")
-
     glUniformMatrix4fv(
-        theMatrixLocation, 1, GL_FALSE, glm.value_ptr(theMatrix)  # location  # count
+        theMatrixLocation, 1, GL_FALSE, glm.value_ptr(worldMatrix)  # location  # count
     )
 
-    # glDrawArrays(GL_TRIANGLES, 0, 3)
-    # glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, None)
+    normalMatrixLocation = glGetUniformLocation(shader, "normalMatrix")
+    glUniformMatrix4fv(
+        normalMatrixLocation,
+        1,
+        GL_FALSE,
+        glm.value_ptr(glm.transpose(glm.inverse(modelMatrix))),  # location  # count
+    )
+
+    exec_time += 0.05
+    glUniform1f(glGetUniformLocation(shader, "clock"), exec_time)
 
     glize(scene.rootnode)
-
-    # pygame.display.flip()
     pygame.display.flip()
 
     for event in pygame.event.get():
@@ -197,11 +165,11 @@ while running:
                 position_y -= CAMERA_VELOCITY
             if event.key == pygame.K_DOWN:
                 offset_z = position_z + CAMERA_VELOCITY
-                if offset_z > MAX_ZOOM and offset_z < MIN_ZOOM:
+                if offset_z > MIN_ZOOM and offset_z < MAX_ZOOM:
                     position_z += CAMERA_VELOCITY
             if event.key == pygame.K_UP:
                 offset_z = position_z - CAMERA_VELOCITY
-                if offset_z > MAX_ZOOM and offset_z < MIN_ZOOM:
+                if offset_z > MIN_ZOOM and offset_z < MAX_ZOOM:
                     position_z -= CAMERA_VELOCITY
 
     rotation_x = pygame.mouse.get_pos()[0]
