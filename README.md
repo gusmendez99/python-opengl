@@ -15,10 +15,10 @@ Simple OpenGL project with pygame and pyopengl. Iron Man model applying shaders 
 3. Press W or S keys to go forwards and backwards and A or D to strafe left or right with the camera.
 4. Press UP or DOWN keys to zoom model.
 5. Switch between shaders with the following numbers:
-   1. Default shader.
-   2. Glow shader.
-   3. Fog shader.
-   4. Fluid shader.
+   1. Default shader (Press 1).
+   2. Glow shader (Press 2).
+   3. Fog shader (Press 3).
+   4. Fluid shader (Press 4).
 6. Press ESC to exit.
 
 ## Shaders
