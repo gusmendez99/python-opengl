@@ -1,6 +1,6 @@
 # python-opengl
 
-Simple OpenGL examples with pygame and pyopengl
+Simple OpenGL project with pygame and pyopengl. Iron Man model applying shaders (see images below).
 
 ## Requirements
 - [x] Three shaders (60 pts).
